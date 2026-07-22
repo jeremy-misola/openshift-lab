@@ -43,6 +43,6 @@ services:
       # Injected via Doppler
       - SUSHY_EMULATOR_PROXMOX_PASSWORD=${PM_API_TOKEN_SECRET}
       - SUSHY_EMULATOR_PROXMOX_USER=${SUSHY_EMULATOR_PROXMOX_USER}
-d
+
     volumes:
       - ./sushy/sushy.conf:/etc/sushy/sushy.conf:ro
