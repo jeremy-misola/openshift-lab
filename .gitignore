@@ -1,7 +1,4 @@
 Terraform\terraform.tfvars
 
-# Secrets - never commit
-infra/sushy/sushy.conf
-infra/.env
 .env
 *.tfvars
