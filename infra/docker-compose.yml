@@ -15,7 +15,6 @@ services:
       - ./bind/records:/var/lib/bind
     restart: unless-stopped
 
-  services:
     vault:
       image: hashicorp/vault:1.15
       container_name: vault
