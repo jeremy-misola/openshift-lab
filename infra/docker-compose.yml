@@ -1,0 +1,48 @@
+version: "3"
+services:
+  bind9:
+    container_name: bind-dns
+    image: ubuntu/bind9:latest
+    environment:
+      - BIND9_USER=root
+      - TZ=America/New_York
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - ./bind/config:/etc/bind
+      - ./bind/cache:/var/cache/bind
+      - ./bind/records:/var/lib/bind
+    restart: unless-stopped
+
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: vault
+    restart: always
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_ADDR: "http://127.0.0.1:8200"
+      VAULT_API_ADDR: "http://0.0.0.0:8200"
+      VAULT_LOCAL_CONFIG: '{"storage": {"raft": {"path": "/vault/data"}}, "ui": true}'
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/config:/vault/config
+      - ./vault/data:/vault/data
+      - /opt/vault/logs:/vault/logs
+    command: server
+
+  sushy:
+    image: docker.io/psharkey/sushy-emulator:latest
+    container_name: sushy-emulator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Injected via Doppler
+      - SUSHY_EMULATOR_PROXMOX_PASSWORD=${PM_API_TOKEN_SECRET}
+      - SUSHY_EMULATOR_PROXMOX_USER=${SUSHY_EMULATOR_PROXMOX_USER}
+d
+    volumes:
+      - ./sushy/sushy.conf:/etc/sushy/sushy.conf:ro

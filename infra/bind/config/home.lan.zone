@@ -1,0 +1,18 @@
+$TTL 2d
+$ORIGIN jeremymr.dev.
+
+@           IN      SOA     ns1.jeremymr.dev. admin.jeremymr.dev. (
+                                2026072201              ; serial number (YYYYMMDDNN)
+                                3600                    ; refresh
+                                600                     ; retry
+                                604800                  ; expire
+                                1800                    ; negative TTL
+                                )
+
+@           IN      NS      ns1.jeremymr.dev.
+
+ns1                 IN      A       192.168.0.201
+
+api.homelab         IN      A       192.168.0.135
+api-int.homelab     IN      A       192.168.0.135
+*.apps.homelab      IN      A       192.168.0.135
