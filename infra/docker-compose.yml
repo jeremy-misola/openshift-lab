@@ -34,15 +34,15 @@ services:
     command: server
 
   sushy:
-    image: docker.io/psharkey/sushy-emulator:latest
-    container_name: sushy-emulator
+    image: quay.io/metal3-io/sushy-tools
+    container_name: sushy
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       # Injected via Doppler
       - SUSHY_EMULATOR_PROXMOX_PASSWORD=${PM_API_TOKEN_SECRET}
-      - SUSHY_EMULATOR_PROXMOX_USER=${SUSHY_EMULATOR_PROXMOX_USER}
+      - SUSHY_EMULATOR_PROXMOX_USER=${PM_API_TOKEN_ID}
 
     volumes:
       - ./sushy/sushy.conf:/etc/sushy/sushy.conf:ro
