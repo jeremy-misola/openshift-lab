@@ -30,7 +30,7 @@ services:
       - ./vault/config:/vault/config
       - ./vault/data:/vault/data
       - /opt/vault/logs:/vault/logs
-      - ./certs:/vault/certs
+      - ./vault/certs:/vault/certs
     command: server
 
   sushy:
