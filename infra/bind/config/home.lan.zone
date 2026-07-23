@@ -2,7 +2,7 @@ $TTL 2d
 $ORIGIN jeremymr.dev.
 
 @           IN      SOA     ns1.jeremymr.dev. admin.jeremymr.dev. (
-                                2026072201              ; serial number (YYYYMMDDNN)
+                                2026072202              ; serial number (YYYYMMDDNN)
                                 3600                    ; refresh
                                 600                     ; retry
                                 604800                  ; expire
