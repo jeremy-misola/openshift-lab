@@ -12,7 +12,7 @@ $ORIGIN jeremymr.dev.
 @           IN      NS      ns1.jeremymr.dev.
 
 ns1                 IN      A       192.168.0.201
-
+vault               IN      A       192.168.0.201
 api.homelab         IN      A       192.168.0.135
 api-int.homelab     IN      A       192.168.0.135
 *.apps.homelab      IN      A       192.168.0.135

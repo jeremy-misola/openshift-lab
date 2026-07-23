@@ -10,9 +10,9 @@ listener "tcp" {
   cluster_address = "0.0.0.0:8201"
 }
 
-api_addr     = "http://192.168.0.135:8200"
+api_addr     = "http://192.168.0.201:8200"
 # The address other Vault nodes use to talk to this one
-cluster_addr = "http://192.168.0.135:8201"
+cluster_addr = "http://192.168.0.201:8201"
 
 disable_mlock = true
 
