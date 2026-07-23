@@ -1,7 +1,3 @@
-Here is a comprehensive Architectural Document for your homelab project, complete with a text-based architecture diagram (using Mermaid.js, which renders natively in GitHub, Obsidian, and most Markdown viewers).
-
----
-
 # Architecture Document: Enterprise OpenShift Platform Homelab
 
 ## 1. Executive Summary
