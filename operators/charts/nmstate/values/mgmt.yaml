@@ -1,0 +1,13 @@
+namespace: openshift-nmstate
+subscription:
+  name: kubernetes-nmstate-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# Proxmox must attach a second NIC to the SNO VM on vmbr1. Verify its RHCOS
+# interface name with `oc debug node/<hub-node> -- chroot /host nmcli device`.
+tenantBridge:
+  name: br-tenant
+  uplinkInterface: ens19

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: external-secrets
+description: Installs External Secrets Operator on the management cluster
+type: application
+version: 0.1.0

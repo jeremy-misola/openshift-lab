@@ -1,0 +1,10 @@
+{{- if .Values.multipath.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: multipath
+  namespace: openshift-machine-config-operator
+data:
+  multipath.conf: |
+{{ .Values.multipath.config | indent 4 }}
+{{- end }}

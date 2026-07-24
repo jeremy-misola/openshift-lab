@@ -1,0 +1,18 @@
+namespace: openshift-lvm-storage
+subscription:
+  name: lvms-operator
+  # Keep this aligned with the hub OCP minor release.
+  channel: stable-4.22
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+lvmCluster:
+  name: lvmcluster
+  deviceClassName: vg1
+  # This must be the dedicated, empty 300 GB disk attached to the SNO VM.
+  # Use a stable by-id path; do not point this at the RHCOS boot disk.
+  devicePath: /dev/disk/by-id/REPLACE_ME
+  thinPoolName: thin-pool-1
+  thinPoolSizePercent: 90
+  overprovisionRatio: 10

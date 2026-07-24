@@ -1,0 +1,10 @@
+apiVersion: v2
+name: hcp-bootstrap
+description: Shared hosted-cluster prerequisites and Argo CD Applications
+type: application
+version: 0.1.0
+apiVersion: v2
+name: hcp-bootstrap
+description: Shared hosted-cluster prerequisites and Argo CD Applications
+type: application
+version: 0.1.0

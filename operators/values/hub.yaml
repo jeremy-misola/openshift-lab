@@ -1,0 +1,57 @@
+gitops:
+  # Change these before applying the root Application.
+  namespace: openshift-gitops
+  project: homelab-platform
+  repoURL: https://github.com/REPLACE_ME/openshift-lab.git
+  targetRevision: main
+  destinationServer: https://kubernetes.default.svc
+  preserveResourcesOnDeletion: true
+
+# The ApplicationSet renders one Argo CD Application for each entry below.
+# Keep the order encoded through wave values: CRD providers first, consumers last.
+operators:
+  - name: gitops-operator
+    path: operators/charts/gitops-operator
+    valuesFile: values/mgmt.yaml
+    namespace: openshift-gitops-operator
+    wave: "-10"
+  - name: acm-operator
+    path: operators/charts/acm-operator
+    valuesFile: values/mgmt.yaml
+    namespace: open-cluster-management
+    wave: "0"
+  - name: lvm-storage
+    path: operators/charts/lvm-storage
+    valuesFile: values/mgmt.yaml
+    namespace: openshift-lvm-storage
+    wave: "10"
+  - name: openshift-virtualization
+    path: operators/charts/openshift-virtualization
+    valuesFile: values/mgmt.yaml
+    namespace: openshift-cnv
+    wave: "20"
+  - name: nmstate
+    path: operators/charts/nmstate
+    valuesFile: values/mgmt.yaml
+    namespace: openshift-nmstate
+    wave: "30"
+  - name: metallb
+    path: operators/charts/metallb
+    valuesFile: values/mgmt.yaml
+    namespace: metallb-system
+    wave: "40"
+  - name: cert-manager
+    path: operators/charts/cert-manager
+    valuesFile: values/mgmt.yaml
+    namespace: cert-manager-operator
+    wave: "50"
+  - name: external-secrets
+    path: operators/charts/external-secrets
+    valuesFile: values/mgmt.yaml
+    namespace: external-secrets-operator
+    wave: "60"
+  - name: cnpg
+    path: operators/charts/cnpg
+    valuesFile: values/mgmt.yaml
+    namespace: cnpg-system
+    wave: "10"

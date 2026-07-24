@@ -1,0 +1,62 @@
+cluster:
+  name: cluster-2
+  namespace: clusters
+  infraID: cluster-2
+  baseDomain: home.lan
+  releaseImage: quay.io/openshift-release-dev/ocp-release:REPLACE_ME-x86_64
+  pullSecretName: cluster-2-pull-secret
+  sshKeyName: cluster-2-ssh-key
+  controllerAvailabilityPolicy: SingleReplica
+  infrastructureAvailabilityPolicy: SingleReplica
+  networking:
+    clusterNetwork:
+      - cidr: 10.136.0.0/14
+    serviceNetwork:
+      - cidr: 172.30.0.0/16
+    networkType: OVNKubernetes
+  platform:
+    type: Agent
+    config:
+      agent:
+        agentNamespace: clusters-cluster-2
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+
+nodePool:
+  replicas: 1
+  autoRepair: false
+  upgradeType: Replace
+  platformConfig:
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: hosted
+
+agent:
+  # HyperShift creates this namespace from HostedCluster namespace/name.
+  namespace: clusters-cluster-2
+  infraEnvName: cluster-2
+  pullSecretName: pull-secret
+  sshAuthorizedKey: REPLACE_ME
+
+# Supply real values through a non-committed override file.  A custom Redfish to
+# Proxmox adapter must implement power and virtual-media actions before enabling these.
+bareMetalHosts:
+  - name: cluster-2-worker-0
+    bmcSecretName: cluster-2-worker-0-bmc
+    bootMode: UEFI
+    bootMACAddress: "REPLACE_ME"
+    bmc:
+      address: redfish-virtualmedia://REPLACE_ME/redfish/v1/Systems/REPLACE_ME
+      username: REPLACE_ME
+      password: REPLACE_ME
+    rootDeviceHints:
+      deviceName: /dev/vda

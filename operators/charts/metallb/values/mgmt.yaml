@@ -1,0 +1,13 @@
+namespace: metallb-system
+subscription:
+  name: metallb-operator
+  channel: stable
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+# Reserve this entire range outside DHCP before synchronization.
+addressPool:
+  name: homelab-vips
+  addresses:
+    - 192.168.0.210-192.168.0.219

@@ -1,0 +1,23 @@
+policy:
+  namespace: open-cluster-management
+  name: baseline-cluster-configuration
+  remediationAction: inform
+  disabled: false
+
+# Only clusters carrying this label receive the baseline.  Apply the label after
+# each HostedCluster is imported into ACM.
+placement:
+  name: hosted-clusters
+  clusterSelector:
+    matchLabels:
+      homelab.openshift.io/managed: "true"
+
+baseline:
+  namespace:
+    name: platform-baseline
+    labels:
+      homelab.openshift.io/managed: "true"
+  limitRange:
+    enabled: true
+    defaultRequestCpu: 50m
+    defaultRequestMemory: 64Mi

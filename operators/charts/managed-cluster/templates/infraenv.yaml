@@ -1,0 +1,30 @@
+{{- if eq .Values.cluster.platform.type "Agent" }}
+apiVersion: agent-install.openshift.io/v1beta1
+kind: InfraEnv
+metadata:
+  name: {{ .Values.agent.infraEnvName }}
+  namespace: {{ required "agent.namespace is required" .Values.agent.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  pullSecretRef:
+    name: {{ required "agent.pullSecretName is required" .Values.agent.pullSecretName }}
+  sshAuthorizedKey: {{ required "agent.sshAuthorizedKey is required" .Values.agent.sshAuthorizedKey | quote }}
+---
+# HyperShift's Agent CAPI provider needs to read Agent resources in the hosted
+# control-plane namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: capi-provider-role
+  namespace: {{ .Values.agent.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+rules:
+  - apiGroups:
+      - agent-install.openshift.io
+    resources:
+      - agents
+    verbs:
+      - '*'
+{{- end }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: lvm-storage
+description: Installs and configures LVM Storage on the single-node hub
+type: application
+version: 0.1.0

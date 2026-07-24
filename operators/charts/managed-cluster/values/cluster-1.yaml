@@ -1,0 +1,57 @@
+cluster:
+  name: cluster-1
+  namespace: clusters
+  # Change all REPLACE_ME values before synchronizing this Application.
+  infraID: cluster-1
+  baseDomain: home.lan
+  releaseImage: quay.io/openshift-release-dev/ocp-release:REPLACE_ME-x86_64
+  pullSecretName: cluster-1-pull-secret
+  sshKeyName: cluster-1-ssh-key
+  controllerAvailabilityPolicy: SingleReplica
+  infrastructureAvailabilityPolicy: SingleReplica
+  networking:
+    clusterNetwork:
+      - cidr: 10.132.0.0/14
+    serviceNetwork:
+      - cidr: 172.31.0.0/16
+    networkType: OVNKubernetes
+  platform:
+    type: KubeVirt
+    # Keep provider-specific HostedCluster fields here.  The chart deliberately
+    # passes this map through so it can track the HyperShift API for your OCP release.
+    config:
+      kubevirt:
+        baseDomainPassthrough: true
+  services:
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+
+nodePool:
+  replicas: 1
+  autoRepair: false
+  upgradeType: Replace
+  # Review this against the NodePool API exposed by the selected HyperShift release.
+  platformConfig:
+    kubevirt:
+      compute:
+        cores: 4
+        memory: 16Gi
+      rootVolume:
+        type: Persistent
+        persistent:
+          size: 120Gi
+          storageClass: lvms-vg1
+
+agent:
+  namespace: clusters-cluster-1
+  infraEnvName: cluster-1
+  pullSecretName: pull-secret
+  sshAuthorizedKey: REPLACE_ME
+bareMetalHosts: []

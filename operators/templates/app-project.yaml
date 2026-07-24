@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.gitops.project }}
+  namespace: {{ .Values.gitops.namespace }}
+spec:
+  description: Homelab platform configuration managed from Git
+  sourceRepos:
+    - {{ .Values.gitops.repoURL | quote }}
+  destinations:
+    - namespace: '*'
+      server: {{ .Values.gitops.destinationServer | quote }}
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'

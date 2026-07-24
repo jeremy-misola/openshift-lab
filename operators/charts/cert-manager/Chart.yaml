@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cert-manager
+description: Installs the Red Hat build of cert-manager on the hub
+type: application
+version: 0.1.0

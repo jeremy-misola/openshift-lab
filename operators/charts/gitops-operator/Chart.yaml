@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gitops-operator
+description: Installs Red Hat OpenShift GitOps on the management cluster
+type: application
+version: 0.1.0

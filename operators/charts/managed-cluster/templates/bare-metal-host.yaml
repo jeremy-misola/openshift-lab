@@ -1,0 +1,40 @@
+{{- if eq .Values.cluster.platform.type "Agent" }}
+{{- range .Values.bareMetalHosts }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .bmcSecretName }}
+  namespace: {{ $.Values.agent.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+type: Opaque
+stringData:
+  username: {{ required "bmc username is required" .bmc.username | quote }}
+  password: {{ required "bmc password is required" .bmc.password | quote }}
+---
+apiVersion: metal3.io/v1alpha1
+kind: BareMetalHost
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.agent.namespace }}
+  labels:
+    infraenvs.agent-install.openshift.io: {{ $.Values.agent.infraEnvName | quote }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    inspect.metal3.io: disabled
+    bmac.agent-install.openshift.io/hostname: {{ .name | quote }}
+spec:
+  online: true
+  bootMode: {{ default "UEFI" .bootMode }}
+  bmc:
+    disableCertificateVerification: true
+    address: {{ required "bmc address is required" .bmc.address | quote }}
+    credentialsName: {{ .bmcSecretName }}
+  bootMACAddress: {{ required "boot MAC address is required" .bootMACAddress | quote }}
+{{- with .rootDeviceHints }}
+  rootDeviceHints:
+{{ toYaml . | indent 4 }}
+{{- end }}
+---
+{{- end }}
+{{- end }}

@@ -1,0 +1,51 @@
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: {{ include "managed-cluster.fullname" . }}
+  namespace: {{ required "cluster.namespace is required" .Values.cluster.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    homelab.openshift.io/platform: {{ .Values.cluster.platform.type | lower | quote }}
+spec:
+  infraID: {{ default (include "managed-cluster.fullname" .) .Values.cluster.infraID }}
+  release:
+    image: {{ required "cluster.releaseImage is required" .Values.cluster.releaseImage | quote }}
+  pullSecret:
+    name: {{ required "cluster.pullSecretName is required" .Values.cluster.pullSecretName }}
+  sshKey:
+    name: {{ required "cluster.sshKeyName is required" .Values.cluster.sshKeyName }}
+  dns:
+    baseDomain: {{ required "cluster.baseDomain is required" .Values.cluster.baseDomain | quote }}
+  controllerAvailabilityPolicy: {{ .Values.cluster.controllerAvailabilityPolicy }}
+  infrastructureAvailabilityPolicy: {{ .Values.cluster.infrastructureAvailabilityPolicy }}
+  networking:
+{{ toYaml .Values.cluster.networking | indent 4 }}
+  platform:
+    type: {{ required "cluster.platform.type is required" .Values.cluster.platform.type }}
+{{- with .Values.cluster.platform.config }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+  services:
+{{ toYaml .Values.cluster.services | indent 4 }}
+---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: {{ include "managed-cluster.fullname" . }}
+  namespace: {{ .Values.cluster.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  clusterName: {{ include "managed-cluster.fullname" . }}
+  replicas: {{ .Values.nodePool.replicas }}
+  management:
+    autoRepair: {{ .Values.nodePool.autoRepair }}
+    upgradeType: {{ .Values.nodePool.upgradeType }}
+  release:
+    image: {{ .Values.cluster.releaseImage | quote }}
+  platform:
+    type: {{ .Values.cluster.platform.type }}
+{{- with .Values.nodePool.platformConfig }}
+{{ toYaml . | indent 4 }}
+{{- end }}

@@ -1,0 +1,24 @@
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: {{ .Values.placement.name }}
+  namespace: {{ .Values.policy.namespace }}
+spec:
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+{{ toYaml .Values.placement.clusterSelector | indent 10 }}
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: {{ .Values.policy.name }}-binding
+  namespace: {{ .Values.policy.namespace }}
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: {{ .Values.placement.name }}
+subjects:
+  - apiGroup: policy.open-cluster-management.io
+    kind: Policy
+    name: {{ .Values.policy.name }}

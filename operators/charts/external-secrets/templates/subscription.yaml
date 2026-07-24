@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-external-secrets-operator
+  namespace: {{ .Values.namespace }}
+spec:
+  targetNamespaces: []
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: {{ .Values.subscription.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  channel: {{ .Values.subscription.channel }}
+  installPlanApproval: {{ .Values.subscription.installPlanApproval }}
+  name: {{ .Values.subscription.name }}
+  source: {{ .Values.subscription.source }}
+  sourceNamespace: {{ .Values.subscription.sourceNamespace }}
+---
+# The supported ESO operator deploys its operand from this cluster-scoped
+# configuration. Explicit egress is required by its default NetworkPolicies.
+apiVersion: operator.openshift.io/v1alpha1
+kind: ExternalSecretsConfig
+metadata:
+  name: cluster
+  labels:
+    app: external-secrets-operator
+    app.kubernetes.io/name: cluster
+spec:
+  controllerConfig:
+    networkPolicies:
+      - name: allow-external-secrets-egress
+        componentName: ExternalSecretsCoreController
+        egress:
+          - {}

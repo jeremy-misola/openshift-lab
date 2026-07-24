@@ -1,0 +1,21 @@
+gitops:
+  namespace: openshift-gitops
+  project: homelab-platform
+  repoURL: https://github.com/REPLACE_ME/openshift-lab.git
+  targetRevision: main
+
+# Add a values file under operators/charts/managed-cluster/values and one entry here to add a cluster.
+hostedClusters:
+  - name: cluster-1
+    namespace: clusters
+    valuesFile: cluster-1.yaml
+  - name: cluster-2
+    namespace: clusters
+    valuesFile: cluster-2.yaml
+
+multipath:
+  enabled: false
+  config: |
+    defaults {
+      find_multipaths no
+    }

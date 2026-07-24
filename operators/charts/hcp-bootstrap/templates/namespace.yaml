@@ -1,0 +1,9 @@
+{{- range .Values.hostedClusters }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .namespace }}
+  labels:
+    hypershift.openshift.io/cluster: {{ .name }}
+---
+{{- end }}

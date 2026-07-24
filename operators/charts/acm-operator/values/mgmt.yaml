@@ -1,0 +1,15 @@
+namespace: open-cluster-management
+subscription:
+  name: advanced-cluster-management
+  # RHACM 2.16 supports an OCP 4.22 hub.
+  channel: release-2.16
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+gitops:
+  namespace: openshift-gitops
+  project: homelab-platform
+  repoURL: https://github.com/REPLACE_ME/openshift-lab.git
+  targetRevision: main
+  policyPath: acm-policies
