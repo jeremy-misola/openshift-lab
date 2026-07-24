@@ -1,7 +1,0 @@
-namespace: cnpg-system
-subscription:
-  name: cloudnative-pg
-  channel: stable
-  source: community-operators
-  sourceNamespace: openshift-marketplace
-  installPlanApproval: Automatic
