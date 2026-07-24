@@ -1,0 +1,36 @@
+# nmstate.io CRs (NMState, NodeNetworkConfigurationPolicy, etc.) are
+# cluster-scoped, so the namespace label trick used elsewhere in this repo
+# (argocd.argoproj.io/managed-by) can't grant access to them -- a
+# namespace-scoped RoleBinding never applies to cluster-scoped resources.
+# Grant the argocd-application-controller SA a plain ClusterRole/
+# ClusterRoleBinding on the nmstate.io API group instead.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-nmstate-manager
+rules:
+  - apiGroups:
+      - nmstate.io
+    resources:
+      - "*"
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argocd-nmstate-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-nmstate-manager
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops
