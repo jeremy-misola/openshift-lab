@@ -4,3 +4,6 @@ metadata:
   name: {{ .Values.namespace }}
   labels:
     openshift.io/cluster-monitoring: "true"
+    # See operators/charts/metallb/templates/namespace.yaml: without this,
+    # ArgoCD is forbidden from patching the HyperConverged CR here.
+    argocd.argoproj.io/managed-by: openshift-gitops

@@ -2,3 +2,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ .Values.namespace }}
+  labels:
+    # See operators/charts/metallb/templates/namespace.yaml: without this,
+    # ArgoCD is forbidden from patching the MultiClusterHub CR here.
+    argocd.argoproj.io/managed-by: openshift-gitops

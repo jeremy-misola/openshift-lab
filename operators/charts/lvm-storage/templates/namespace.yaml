@@ -4,3 +4,7 @@ metadata:
   name: {{ .Values.namespace }}
   labels:
     openshift.io/cluster-monitoring: "true"
+    # See operators/charts/metallb/templates/namespace.yaml for why this is
+    # needed: ArgoCD only has cluster-wide read by default, so without this
+    # label it's forbidden from patching the LVMCluster CR here.
+    argocd.argoproj.io/managed-by: openshift-gitops
