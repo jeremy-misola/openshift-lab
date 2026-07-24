@@ -1,4 +1,3 @@
-version: "3"
 services:
   bind9:
     container_name: bind-dns
@@ -56,3 +55,11 @@ services:
       - REDFISH_PORT=8000
       - REDFISH_HOST=0.0.0.0
       - REDFISH_LOG_LEVEL=INFO
+    volumes:
+      # The daemon hardcodes logging.handlers.SysLogHandler(address="/dev/log"),
+      # but python:3.11-slim has no syslog daemon, so /dev/log doesn't exist in
+      # the container and every log call throws "Bad file descriptor" /
+      # "No such file or directory" to stderr. Bind-mounting the host's syslog
+      # socket (present via journald/rsyslog on this LXC) fixes it with no
+      # source changes -- daemon logs land in the host journal as normal.
+      - /dev/log:/dev/log
