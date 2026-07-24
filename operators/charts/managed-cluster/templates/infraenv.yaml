@@ -1,30 +1,39 @@
-{{- if eq .Values.cluster.platform.type "Agent" }}
+{{- $namespace := .Values.metadata.name }}
+{{- $osversion := .Values.hypershift.osImageVersion }}
+{{- $sshkey := .Values.sshKey }}
+{{- $ntpsources := .Values.hypershift.additionalNTPSources | default list }}
+{{- $proxy := .Values.proxy | default dict }}
+{{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
+{{- range .Values.compute }}
+{{- $poolconfig:= dict }}
+{{- $poolname := .name }}
+  {{- range $nodepoolconfigs }}
+    {{- if eq .name $poolname }}
+      {{- $poolconfig = . }}
+    {{- end }}
+  {{- end }}
 apiVersion: agent-install.openshift.io/v1beta1
 kind: InfraEnv
 metadata:
-  name: {{ .Values.agent.infraEnvName }}
-  namespace: {{ required "agent.namespace is required" .Values.agent.namespace }}
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    helm.sh/hook-weight: "10"
 spec:
+  osImageVersion: "{{ $poolconfig.osImageVersion | default $osversion }}"
+  sshAuthorizedKey: "{{ $sshkey | trim }}"
   pullSecretRef:
-    name: {{ required "agent.pullSecretName is required" .Values.agent.pullSecretName }}
-  sshAuthorizedKey: {{ required "agent.sshAuthorizedKey is required" .Values.agent.sshAuthorizedKey | quote }}
+    name: assisted-deployment-pull-secret
+  nmStateConfigLabelSelector:
+    matchLabels:
+      nmstate-cluster: {{ .name | quote }}
+{{- if ne (len $ntpsources) 0 }}
+  additionalNTPSources:
+    {{- $ntpsources | toYaml | nindent 4 }}
+{{- end }}
+{{- if ne (len $proxy) 0 }}
+  proxy:
+    {{- $proxy | toYaml | nindent 4 }}
+{{- end }}
 ---
-# HyperShift's Agent CAPI provider needs to read Agent resources in the hosted
-# control-plane namespace.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: capi-provider-role
-  namespace: {{ .Values.agent.namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
-rules:
-  - apiGroups:
-      - agent-install.openshift.io
-    resources:
-      - agents
-    verbs:
-      - '*'
 {{- end }}

@@ -13,7 +13,7 @@ spec:
 {{- range .Values.operators }}
           - name: {{ .name | quote }}
             path: {{ .path | quote }}
-            valuesFile: {{ .valuesFile | quote }}
+            valuesFile: values/mgmt.yaml
             namespace: {{ .namespace | quote }}
             wave: {{ .wave | quote }}
 {{- end }}

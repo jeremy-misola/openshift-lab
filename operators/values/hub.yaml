@@ -2,7 +2,7 @@ gitops:
   # Change these before applying the root Application.
   namespace: openshift-gitops
   project: homelab-platform
-  repoURL: https://github.com/REPLACE_ME/openshift-lab.git
+  repoURL: https://github.com/jeremy-misola/openshift-lab.git
   targetRevision: main
   destinationServer: https://kubernetes.default.svc
   preserveResourcesOnDeletion: true

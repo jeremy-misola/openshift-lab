@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: patch-api-svc
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "5"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      serviceAccountName: hypershift-installer
+      containers:
+        - name: ose-client
+          image: {{ include "ocp_client" . }}
+          command:
+            - oc
+          args:
+            - patch
+            - service
+            - kube-apiserver
+            - -n
+            - "{{ .Values.metadata.name }}-{{ .Values.metadata.name }}"
+            - -p
+            - '{"metadata": {"annotations": {"metallb.universe.tf/address-pool": "{{ .Values.metadata.name }}-api-address-pool"}}}'
+      restartPolicy: OnFailure

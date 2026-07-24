@@ -1,0 +1,8 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: cert-manager-operator
+  namespace: {{ .Values.namespace }}
+spec:
+  # cert-manager is cluster-wide; an empty list selects AllNamespaces mode.
+  targetNamespaces: []

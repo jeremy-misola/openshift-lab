@@ -1,0 +1,221 @@
+{{ $capabilities := default dict .Values.hypershift.capabilities }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-setup
+  namespace: {{ .Values.metadata.name | quote }}
+data:
+{{- if eq .Values.hypershift.disableAllDefaultSources true }}
+  disable_default_catalog_sources.sh: |
+    set -e
+
+    oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
+{{- end }}
+{{- if hasKey .Values.hypershift "customManifests" }}
+  apply_custom_manifests.sh: |
+    set -e
+
+    cat << EOF | oc apply -f -
+    {{- .Values.hypershift.customManifests | nindent 4 }}
+    EOF
+{{- end }}
+  wait_node.sh: |
+    set -e
+
+    node_count=0
+    until [ "${node_count}" -gt 0 ]
+    do
+      sleep 60
+      node_count=$(oc get node --no-headers | wc -l)
+    done
+    oc wait --timeout=30m --for=condition=ready node --all
+  ingress_setup.sh: |
+    set -e
+
+    cat << EOF | oc apply -f -
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1
+    kind: OperatorGroup
+    metadata:
+      name: metallb-operator
+      namespace: metallb-system
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: operators.coreos.com/v1alpha1
+    kind: Subscription
+    metadata:
+      name: metallb-operator-sub
+      namespace: metallb-system
+    spec:
+      channel: stable
+      name: metallb-operator
+      source: redhat-operators 
+      sourceNamespace: openshift-marketplace
+    EOF
+
+    sleep 10
+    oc wait --timeout=10m --for=jsonpath='{.status.state}'=AtLatestKnown -n metallb-system sub/metallb-operator-sub
+    csv=$(oc get -n metallb-system sub/metallb-operator-sub -o jsonpath='{.status.installedCSV}')
+    oc wait --timeout=10m --for=jsonpath='{.status.phase}'=Succeeded -n metallb-system csv/$csv
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: MetalLB
+    metadata:
+      name: metallb
+      namespace: metallb-system
+    EOF
+
+    oc wait --timeout=10m --for=condition=available -n metallb-system metallb/metallb
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: IPAddressPool
+    metadata:
+      name: ingress-address-pool
+      namespace: metallb-system
+    spec:
+      addresses:
+{{- range .Values.platform.baremetal.ingressVIPs | default (list .Values.platform.baremetal.ingressVIP) }}
+        - {{ . }}/{{ contains ":" . | ternary "128" "32" }}
+{{- end }}
+      autoAssign: false
+    EOF
+
+    cat << EOF | oc apply -f -
+    apiVersion: metallb.io/v1beta1
+    kind: L2Advertisement
+    metadata:
+      name: ingress-adv
+      namespace: metallb-system
+    spec:
+      ipAddressPools:
+        - ingress-address-pool
+    EOF
+
+    cat << EOF | oc apply -f -
+    kind: Service
+    apiVersion: v1
+    metadata:
+      annotations:
+        metallb.universe.tf/address-pool: ingress-address-pool
+      name: metallb-ingress
+      namespace: openshift-ingress
+    spec:
+      ports:
+        - name: http
+          protocol: TCP
+          port: 80
+          targetPort: 80
+        - name: https
+          protocol: TCP
+          port: 443
+          targetPort: 443
+      selector:
+        ingresscontroller.operator.openshift.io/deployment-ingresscontroller: default
+      type: LoadBalancer
+    EOF
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: worker-setup
+  namespace: {{ .Values.metadata.name | quote }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-weight: "10"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      serviceAccountName: hypershift-installer
+      initContainers:
+        - name: wait-node
+          image: {{ include "ocp_client" . }}
+          command:
+            - bash
+          args:
+            - /script/wait_node.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+{{- if eq .Values.hypershift.disableAllDefaultSources true }}
+        - name: disable-default-catalog
+          image: {{ include "ocp_client" . }}
+          command:
+            - bash
+          args:
+            - /script/disable_default_catalog_sources.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+{{- end }}
+{{- if hasKey .Values.hypershift "customManifests" }}
+        - name: apply-custom-manifests
+          image: {{ include "ocp_client" . }}
+          command:
+            - bash
+          args:
+            - /script/apply_custom_manifests.sh
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+{{- end }}
+      containers:
+        - name: configure-ingress
+          image: {{ include "ocp_client" . }}
+          command:
+            - bash
+          args:
+{{- if not (has "Ingress" $capabilities.disabled) }}
+            - /script/ingress_setup.sh
+{{- else }}
+            - -c
+            - "echo Ingress capability is disabled, skipping ingress setup"
+{{- end }}
+          env:
+            - name: KUBECONFIG
+              value: "/secrets/kubeconfig"
+          volumeMounts:
+            - name: kubeconfig
+              mountPath: "/secrets"
+              readOnly: true
+            - name: cluster-setup
+              mountPath: "/script"
+              readOnly: true
+      restartPolicy: OnFailure
+      volumes:
+        - name: kubeconfig
+          secret:
+            secretName: "{{ .Values.metadata.name }}-admin-kubeconfig"
+        - name: cluster-setup
+          configMap:
+            name: cluster-setup

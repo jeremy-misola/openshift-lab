@@ -10,4 +10,4 @@ subscription:
 addressPool:
   name: homelab-vips
   addresses:
-    - 192.168.0.210-192.168.0.219
+    - 192.168.0.230-192.168.0.250

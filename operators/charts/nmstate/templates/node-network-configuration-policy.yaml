@@ -1,0 +1,23 @@
+apiVersion: nmstate.io/v1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: tenant-bridge
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/master: ""
+  desiredState:
+    interfaces:
+      - name: {{ .Values.tenantBridge.name }}
+        description: Proxmox vmbr1 bridge for tenant VM traffic
+        type: linux-bridge
+        state: up
+        ipv4:
+          enabled: false
+        ipv6:
+          enabled: false
+        bridge:
+          options:
+            stp:
+              enabled: false
+          port:
+            - name: {{ required "tenantBridge.uplinkInterface must be the SNO NIC connected to Proxmox vmbr1" .Values.tenantBridge.uplinkInterface }}

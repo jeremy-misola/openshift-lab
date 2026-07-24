@@ -1,0 +1,41 @@
+{{- $namespace := .Values.metadata.name }}
+{{- $imageset := .Values.hypershift.clusterImageSet }}
+{{- $nodepoolconfigs := .Values.hypershift.nodePoolConfigs }}
+{{- range .Values.compute }}
+{{- $poolconfig:= dict }}
+{{- $poolname := .name }}
+  {{- range $nodepoolconfigs }}
+    {{- if eq .name $poolname }}
+      {{- $poolconfig = . }}
+    {{- end }}
+  {{- end }}
+apiVersion: hypershift.openshift.io/v1beta1
+kind: NodePool
+metadata:
+  name: {{ .name | quote }}
+  namespace: {{ $namespace | quote }}
+  annotations:
+    helm.sh/hook-weight: "25"
+spec:
+  clusterName: {{ $namespace | quote }}
+  release:
+    image: {{ $poolconfig.imageSet | default $imageset | quote }}
+  replicas: {{ .replicas }}
+  management:
+    upgradeType: InPlace
+  platform:
+    type: "Agent"
+    agent:
+      agentLabelSelector:
+        matchLabels:
+          infraenvs.agent-install.openshift.io: {{ .name | quote }}
+{{- if hasKey $poolconfig "configRefs" }}
+  config:
+    {{- $poolconfig.configRefs | toYaml | nindent 4 }}
+{{- end }}
+{{- if hasKey $poolconfig "tuningRefs" }}
+  tuningConfig:
+    {{- $poolconfig.tuningRefs | toYaml | nindent 4 }}
+{{- end }}
+---
+{{- end }}
