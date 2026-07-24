@@ -47,15 +47,38 @@ agent:
   pullSecretName: pull-secret
   sshAuthorizedKey: REPLACE_ME
 
-# Supply real values through a non-committed override file.  A custom Redfish to
-# Proxmox adapter must implement power and virtual-media actions before enabling these.
+# Supply real values through a non-committed override file.
+#
+# BMC is served by the "proxmox-redfish" daemon (infra/docker-compose.yml),
+# not sushy-tools -- see infra/sushy/sushy.conf for why sushy-tools can't
+# talk to Proxmox at all.
+#
+#   address:  redfish-virtualmedia://<proxmox-redfish-host>:8000/redfish/v1/Systems/<proxmox-vmid>
+#             The last path segment MUST be the numeric Proxmox VMID (e.g. "201"),
+#             not an arbitrary name -- that's how proxmox-redfish maps a Redfish
+#             "System" to a VM.
+#   username/password: this is the Basic Auth BMO sends to the daemon's Redfish
+#             endpoint -- it is checked separately from the daemon's own
+#             Proxmox connection, so it CAN be a Proxmox API token here:
+#               username: <user>@<realm>!<token-name>   (e.g. redfish@pam!bmo)
+#               password: <token-secret-uuid>
+#             (proxmox_redfish.py's authenticate_user() detects the "!" +
+#             36-char UUID shape and validates it as a token instead of a
+#             password.) A plain user/password also works.
+#             NOTE: this is unrelated to the daemon's own PROXMOX_USER/
+#             PROXMOX_PASSWORD in infra/docker-compose.yml -- those actually
+#             drive every Proxmox API call the daemon makes (power, virtual
+#             media, etc.) and currently MUST be a real password, since
+#             proxmoxer only does token auth when passed separate
+#             token_name/token_value args, which get_proxmox_api() never
+#             supplies. Don't put your Terraform token there.
 bareMetalHosts:
   - name: cluster-2-worker-0
     bmcSecretName: cluster-2-worker-0-bmc
     bootMode: UEFI
-    bootMACAddress: "REPLACE_ME"
+    bootMACAddress: "REPLACE_ME"  # MAC of this VM's configured NIC in Proxmox
     bmc:
-      address: redfish-virtualmedia://REPLACE_ME/redfish/v1/Systems/REPLACE_ME
+      address: redfish-virtualmedia://REPLACE_ME_PROXMOX_REDFISH_HOST:8000/redfish/v1/Systems/REPLACE_ME_VMID
       username: REPLACE_ME
       password: REPLACE_ME
     rootDeviceHints:

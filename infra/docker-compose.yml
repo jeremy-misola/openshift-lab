@@ -33,16 +33,26 @@ services:
       - ./vault/certs:/vault/certs
     command: server
 
-  sushy:
-    image: quay.io/metal3-io/sushy-tools
-    container_name: sushy
+  proxmox-redfish:
+    build:
+      context: https://github.com/v1k0d3n/proxmox-redfish.git
+    container_name: proxmox-redfish
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      # Injected via Doppler
-      - SUSHY_EMULATOR_PROXMOX_PASSWORD=${PM_API_TOKEN_SECRET}
-      - SUSHY_EMULATOR_PROXMOX_USER=${PM_API_TOKEN_ID}
-
-    volumes:
-      - ./sushy/sushy.conf:/etc/sushy/sushy.conf:ro
+      - PROXMOX_HOST=192.168.0.230
+      - PROXMOX_API_PORT=8006
+      # Node name as shown in the Proxmox UI (Datacenter > Node).
+      - PROXMOX_NODE=${PVE_NODE}
+      # Dedicated Proxmox user for this daemon's own API session (e.g.
+      # redfish@pam with VM.Audit/VM.PowerMgmt/VM.Config.CDROM/
+      # Datastore.AllocateSpace roles) -- NOT the Terraform token in
+      # Terraform/terraform.tfvars. Injected via Doppler/.env.
+      - PROXMOX_USER=${PVE_REDFISH_USER}
+      - PROXMOX_PASSWORD=${PVE_REDFISH_PASSWORD}
+      - PROXMOX_ISO_STORAGE=local
+      - VERIFY_SSL=false
+      - REDFISH_PORT=8000
+      - REDFISH_HOST=0.0.0.0
+      - REDFISH_LOG_LEVEL=INFO
