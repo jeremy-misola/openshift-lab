@@ -50,8 +50,3 @@ operators:
     valuesFile: values/mgmt.yaml
     namespace: external-secrets-operator
     wave: "60"
-  - name: cnpg
-    path: operators/charts/cnpg
-    valuesFile: values/mgmt.yaml
-    namespace: cnpg-system
-    wave: "10"
